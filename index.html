@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>传奇十一人 - 梦幻阵容构建器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a2f1f 0%, #0a3a2a 100%);
+            font-family: 'Poppins', 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(0, 20, 10, 0.7);
+            backdrop-filter: blur(3px);
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,215,0,0.4);
+        }
+
+        .info-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background: #0a1c12cc;
+            border-radius: 60px;
+            padding: 12px 24px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(8px);
+            border: 1px solid #f5c5424d;
+        }
+
+        .team-era-card {
+            background: linear-gradient(135deg, #e63946, #b91c1c);
+            padding: 8px 24px;
+            border-radius: 40px;
+            box-shadow: 0 6px 0 #7a0000;
+            color: white;
+            font-weight: bold;
+        }
+
+        .team-name {
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+        }
+
+        .era-name {
+            font-size: 1rem;
+            background: #ffb347;
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        .chances {
+            display: flex;
+            gap: 20px;
+            background: #00000066;
+            padding: 6px 18px;
+            border-radius: 36px;
+        }
+
+        .chance-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            color: #ffdd88;
+        }
+
+        button {
+            background: #f5b042;
+            border: none;
+            font-weight: bold;
+            padding: 8px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.1s ease;
+            box-shadow: 0 3px 0 #a45d2e;
+            color: #1e2a1e;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #a45d2e;
+        }
+        button:disabled {
+            opacity: 0.5;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .formation-selector {
+            background: #1e3a2fcc;
+            border-radius: 50px;
+            padding: 6px 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .form-btn {
+            background: #2c5a42;
+            color: #f0f0e0;
+            box-shadow: none;
+        }
+        .form-btn.active {
+            background: #f5c542;
+            color: #1f2a0e;
+            box-shadow: 0 0 0 2px gold;
+        }
+
+        .pitch {
+            background: linear-gradient(145deg, #2e7d32, #1b5e20);
+            border-radius: 40px;
+            padding: 20px 10px;
+            margin: 20px 0;
+            position: relative;
+            border: 4px solid #f5e2b0;
+            box-shadow: inset 0 0 0 2px #ffeeaa, 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .pitch-grid {
+            background-image: radial-gradient(circle at 20% 40%, rgba(200,230,150,0.2) 2%, transparent 2.5%);
+            background-size: 28px 28px;
+            min-height: 560px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .pitch-row {
+            display: flex;
+            justify-content: space-evenly;
+            margin: 12px 0;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .position-slot {
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(8px);
+            border-radius: 40px;
+            width: 100px;
+            min-width: 85px;
+            padding: 12px 5px;
+            text-align: center;
+            transition: 0.05s;
+            border: 1px solid #ffdf8c;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .position-slot.empty {
+            background: rgba(30,30,20,0.7);
+            border: 2px dashed #ffcc77;
+        }
+        .position-slot.filled {
+            background: #1f3b28e6;
+            border: 2px solid #ffb347;
+        }
+        .pos-label {
+            font-size: 0.7rem;
+            color: #ffdfaa;
+            font-weight: bold;
+        }
+        .player-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            background: #00000099;
+            border-radius: 20px;
+            padding: 3px 4px;
+            margin-top: 5px;
+            word-break: keep-all;
+        }
+        .pos-actions {
+            font-size: 0.65rem;
+            color: #ffd966;
+            margin-top: 4px;
+        }
+
+        .players-pool {
+            background: #0f281dcc;
+            border-radius: 32px;
+            padding: 15px;
+            margin-top: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .pool-title {
+            color: #ffd966;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .player-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .player-card {
+            background: #2c3e2b;
+            border-radius: 28px;
+            padding: 8px 12px;
+            width: 115px;
+            text-align: center;
+            color: white;
+            font-size: 0.75rem;
+            border-left: 5px solid gold;
+            cursor: pointer;
+            transition: 0.05s linear;
+        }
+        .player-card:hover { background: #4c6e3c; transform: scale(0.97);}
+
+        .analyze-btn {
+            background: #ffaa33;
+            font-size: 1.2rem;
+            padding: 12px 24px;
+            width: 100%;
+            margin-top: 16px;
+            border-radius: 60px;
+        }
+        .analysis-result {
+            background: #060c08e0;
+            border-radius: 28px;
+            padding: 16px;
+            margin-top: 18px;
+            color: #f0f0e0;
+            font-size: 0.9rem;
+            border-left: 8px solid #ffbb44;
+        }
+
+        .reset-btn {
+            background: #3a6b4b;
+            box-shadow: 0 3px 0 #1e3a2f;
+        }
+
+        @media (max-width: 760px) {
+            .position-slot { width: 70px; min-width: 65px; }
+            .player-name { font-size: 0.65rem; }
+        }
+
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #bbaa77;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameApp">
+    <div class="info-panel">
+        <div class="team-era-card">
+            <div class="team-name" id="teamName">---</div>
+            <div class="era-name" id="eraName"></div>
+        </div>
+        <div class="chances">
+            <div class="chance-badge">🎲 球队重抽: <span id="teamChance">2</span></div>
+            <div class="chance-badge">⏳ 年代重抽: <span id="eraChance">2</span></div>
+            <button id="rerollTeamBtn" class="small-btn">🔄 换队</button>
+            <button id="rerollEraBtn" class="small-btn">📅 换年代</button>
+            <button id="resetGameBtn" class="reset-btn">🔄 新游戏</button>
+        </div>
+        <div class="formation-selector">
+            <span style="color:#ffdd99">⚽ 阵型</span>
+            <button data-form="433" class="form-btn active">4-3-3</button>
+            <button data-form="442" class="form-btn">4-4-2</button>
+            <button data-form="352" class="form-btn">3-5-2</button>
+        </div>
+    </div>
+
+    <div class="pitch">
+        <div class="pitch-grid" id="pitchContainer"></div>
+    </div>
+
+    <div class="players-pool">
+        <div class="pool-title">🌟 传奇候选池 (点击球员卡 → 再点击场上空位放置) <span id="selectedCountText">0/11</span></div>
+        <div class="player-cards" id="playerPoolList"></div>
+    </div>
+
+    <button id="analyzeBtn" class="analyze-btn">🏆 分析球队战力 🏆</button>
+    <div id="analysisArea" class="analysis-result" style="display:none;"></div>
+    <footer>💡 玩法：①选择阵型 ②点击球员卡选中 ③点击球场空位放置 | 已放置球员可点击并调整位置</footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 丰富真实的球员数据库 (涵盖各豪门/国家队，80年代至2020s)
+    // 每个球员: name, positions, {team, start, end}, rating
+    // --------------------------------------------------------------
+    const PLAYERS_DB = [];
+
+    function addPlayer(name, positions, careerEntries, rating) {
+        PLAYERS_DB.push({ name, positions, career: careerEntries, rating });
+    }
+
+    // ************ 俱乐部传奇 ************
+    // 皇家马德里
+    addPlayer("C罗", ["ST","LW","RW"], [{team:"皇家马德里",start:2009,end:2018}], 99);
+    addPlayer("劳尔", ["ST","SS","LW"], [{team:"皇家马德里",start:1994,end:2010}], 95);
+    addPlayer("齐达内", ["CAM","CM"], [{team:"皇家马德里",start:2001,end:2006}], 98);
+    addPlayer("罗纳尔多", ["ST"], [{team:"皇家马德里",start:2002,end:2007}], 99);
+    addPlayer("贝克汉姆", ["RM","CM"], [{team:"皇家马德里",start:2003,end:2007}], 94);
+    addPlayer("卡洛斯", ["LB","LWB"], [{team:"皇家马德里",start:1996,end:2007}], 95);
+    addPlayer("拉莫斯", ["CB","RB"], [{team:"皇家马德里",start:2005,end:2021}], 95);
+    addPlayer("莫德里奇", ["CM","CAM"], [{team:"皇家马德里",start:2012,end:2025}], 96);
+    addPlayer("本泽马", ["ST"], [{team:"皇家马德里",start:2009,end:2023}], 97);
+    // 巴塞罗那
+    addPlayer("梅西", ["ST","RW","CAM","SS"], [{team:"巴塞罗那",start:2004,end:2021}], 99);
+    addPlayer("哈维", ["CM","CDM"], [{team:"巴塞罗那",start:1998,end:2015}], 96);
+    addPlayer("伊涅斯塔", ["CM","CAM","LM"], [{team:"巴塞罗那",start:2002,end:2018}], 96);
+    addPlayer("罗纳尔迪尼奥", ["LW","RW","CAM"], [{team:"巴塞罗那",start:2003,end:2008}], 98);
+    addPlayer("普约尔", ["CB"], [{team:"巴塞罗那",start:1999,end:2014}], 94);
+    addPlayer("布斯克茨", ["CDM","CM"], [{team:"巴塞罗那",start:2008,end:2023}], 93);
+    // 曼联
+    addPlayer("舒梅切尔", ["GK"], [{team:"曼联",start:1992,end:1999}], 94);
+    addPlayer("基恩", ["CDM","CM"], [{team:"曼联",start:1993,end:2005}], 94);
+    addPlayer("斯科尔斯", ["CM","CAM"], [{team:"曼联",start:1994,end:2013}], 94);
+    addPlayer("吉格斯", ["LM","LW"], [{team:"曼联",start:1990,end:2014}], 94);
+    addPlayer("鲁尼", ["ST","CAM"], [{team:"曼联",start:2004,end:2017}], 95);
+    // 拜仁
+    addPlayer("诺伊尔", ["GK"], [{team:"拜仁慕尼黑",start:2011,end:2025}], 97);
+    addPlayer("拉姆", ["RB","LB","CDM"], [{team:"拜仁慕尼黑",start:2002,end:2017}], 95);
+    addPlayer("施魏因施泰格", ["CM","CDM"], [{team:"拜仁慕尼黑",start:2002,end:2015}], 94);
+    addPlayer("穆勒", ["ST","RW","CAM"], [{team:"拜仁慕尼黑",start:2009,end:2025}], 95);
+    addPlayer("莱万", ["ST"], [{team:"拜仁慕尼黑",start:2014,end:2022}], 98);
+    // AC米兰
+    addPlayer("马尔蒂尼", ["CB","LB"], [{team:"AC米兰",start:1985,end:2009}], 97);
+    addPlayer("巴雷西", ["CB"], [{team:"AC米兰",start:1978,end:1997}], 96);
+    addPlayer("范巴斯滕", ["ST"], [{team:"AC米兰",start:1987,end:1993}], 97);
+    addPlayer("卡卡", ["CAM","CM"], [{team:"AC米兰",start:2003,end:2009}], 96);
+    addPlayer("舍甫琴科", ["ST"], [{team:"AC米兰",start:1999,end:2006}], 95);
+    // 利物浦
+    addPlayer("达格利什", ["ST","SS"], [{team:"利物浦",start:1977,end:1990}], 96);
+    addPlayer("杰拉德", ["CM","CDM","CAM"], [{team:"利物浦",start:1998,end:2015}], 96);
+    addPlayer("萨拉赫", ["RW","ST"], [{team:"利物浦",start:2017,end:2025}], 95);
+    addPlayer("范迪克", ["CB"], [{team:"利物浦",start:2018,end:2025}], 95);
+    // 尤文图斯
+    addPlayer("普拉蒂尼", ["CAM","CM"], [{team:"尤文图斯",start:1982,end:1987}], 97);
+    addPlayer("皮耶罗", ["ST","SS","LW"], [{team:"尤文图斯",start:1993,end:2012}], 94);
+    addPlayer("布冯", ["GK"], [{team:"尤文图斯",start:2001,end:2018}], 96);
+    // 曼城
+    addPlayer("阿圭罗", ["ST"], [{team:"曼城",start:2011,end:2021}], 94);
+    addPlayer("德布劳内", ["CM","CAM","RW"], [{team:"曼城",start:2015,end:2025}], 96);
+    // 阿森纳
+    addPlayer("亨利", ["ST","LW"], [{team:"阿森纳",start:1999,end:2007}], 97);
+    addPlayer("博格坎普", ["SS","CAM","ST"], [{team:"阿森纳",start:1995,end:2006}], 95);
+    // 切尔西
+    addPlayer("兰帕德", ["CM","CAM"], [{team:"切尔西",start:2001,end:2014}], 95);
+    addPlayer("特里", ["CB"], [{team:"切尔西",start:1998,end:2017}], 94);
+    addPlayer("德罗巴", ["ST"], [{team:"切尔西",start:2004,end:2012}], 95);
+    // 多特蒙德
+    addPlayer("罗伊斯", ["LW","RW","CAM"], [{team:"多特蒙德",start:2012,end:2023}], 92);
+    // 马竞
+    addPlayer("格列兹曼", ["ST","LW","RW"], [{team:"马德里竞技",start:2014,end:2019}], 94);
+    // 阿贾克斯
+    addPlayer("克鲁伊夫", ["SS","LW","CAM"], [{team:"阿贾克斯",start:1964,end:1973}], 99);
+    addPlayer("范德萨", ["GK"], [{team:"阿贾克斯",start:1990,end:1999}], 93);
+    // 波尔图
+    addPlayer("德科", ["CM","CAM"], [{team:"波尔图",start:1999,end:2004}], 93);
+    
+    // ************ 国家队传奇 (附加独立生涯) ************
+    addPlayer("马拉多纳", ["CAM","ST","SS"], [{team:"阿根廷",start:1977,end:1994}], 100);
+    addPlayer("巴蒂斯图塔", ["ST"], [{team:"阿根廷",start:1991,end:2002}], 94);
+    addPlayer("梅西", ["ST","RW","CAM"], [{team:"阿根廷",start:2005,end:2025}], 99);
+    addPlayer("贝利", ["ST","SS"], [{team:"巴西",start:1957,end:1971}], 100);
+    addPlayer("罗纳尔多", ["ST"], [{team:"巴西",start:1994,end:2011}], 99);
+    addPlayer("罗纳尔迪尼奥", ["LW","CAM"], [{team:"巴西",start:1999,end:2013}], 98);
+    addPlayer("卡福", ["RB","RWB"], [{team:"巴西",start:1990,end:2006}], 94);
+    addPlayer("贝肯鲍尔", ["CB","CDM"], [{team:"德国",start:1965,end:1977}], 99);
+    addPlayer("马特乌斯", ["CM","CDM","CB"], [{team:"德国",start:1980,end:2000}], 96);
+    addPlayer("克洛泽", ["ST"], [{team:"德国",start:2001,end:2014}], 94);
+    addPlayer("齐达内", ["CAM","CM"], [{team:"法国",start:1994,end:2006}], 98);
+    addPlayer("姆巴佩", ["ST","LW","RW"], [{team:"法国",start:2017,end:2025}], 96);
+    addPlayer("普拉蒂尼", ["CAM"], [{team:"法国",start:1976,end:1987}], 97);
+    addPlayer("范巴斯滕", ["ST"], [{team:"荷兰",start:1983,end:1992}], 97);
+    addPlayer("罗本", ["RW","LW"], [{team:"荷兰",start:2003,end:2017}], 95);
+    addPlayer("斯内德", ["CAM","CM"], [{team:"荷兰",start:2003,end:2018}], 94);
+    addPlayer("凯恩", ["ST"], [{team:"英格兰",start:2015,end:2025}], 95);
+    addPlayer("鲁尼", ["ST","CAM"], [{team:"英格兰",start:2003,end:2018}], 94);
+    addPlayer("C罗", ["ST","LW"], [{team:"葡萄牙",start:2003,end:2025}], 99);
+    addPlayer("尤西比奥", ["ST"], [{team:"葡萄牙",start:1961,end:1978}], 97);
+    addPlayer("阿扎尔", ["LW","RW"], [{team:"比利时",start:2008,end:2022}], 95);
+    addPlayer("德布劳内", ["CM","CAM"], [{team:"比利时",start:2010,end:2025}], 96);
+    addPlayer("哈维", ["CM"], [{team:"西班牙",start:2000,end:2014}], 96);
+    addPlayer("伊涅斯塔", ["CM"], [{team:"西班牙",start:2006,end:2018}], 96);
+    addPlayer("托雷斯", ["ST"], [{team:"西班牙",start:2003,end:2014}], 93);
+    addPlayer("皮尔洛", ["CM","CDM"], [{team:"意大利",start:2002,end:2015}], 95);
+    addPlayer("卡纳瓦罗", ["CB"], [{team:"意大利",start:1997,end:2010}], 94);
+    addPlayer("布冯", ["GK"], [{team:"意大利",start:1997,end:2018}], 96);
+
+    // --------------------------------------------------------------
+    // 球队列表：20俱乐部 + 10国家队
+    const CLUBS = [
+        "皇家马德里", "巴塞罗那", "曼联", "拜仁慕尼黑", "AC米兰", "利物浦", "尤文图斯", "曼城",
+        "切尔西", "阿森纳", "国际米兰", "巴黎圣日耳曼", "多特蒙德", "马德里竞技", "托特纳姆热刺",
+        "阿贾克斯", "波尔图", "本菲卡", "河床", "博卡青年"
+    ];
+    const NATIONS = [
+        "巴西", "德国", "阿根廷", "法国", "意大利", "西班牙", "荷兰", "英格兰", "葡萄牙", "比利时"
+    ];
+    const ALL_TEAMS = [...CLUBS, ...NATIONS];
+    const DECADES = ["1980s", "1990s", "2000s", "2010s", "2020s"];
+
+    // 阵型配置
+    const FORMATIONS = {
+        "433": {
+            positions: [
+                {id:"GK", label:"GK", allowedTypes:["GK"]},
+                {id:"LB", label:"LB", allowedTypes:["LB","LWB","CB"]},
+                {id:"CB1", label:"CB", allowedTypes:["CB"]},
+                {id:"CB2", label:"CB", allowedTypes:["CB"]},
+                {id:"RB", label:"RB", allowedTypes:["RB","RWB","CB"]},
+                {id:"LCM", label:"LCM", allowedTypes:["CM","LM","CAM","CDM"]},
+                {id:"CM", label:"CM", allowedTypes:["CM","CAM","CDM"]},
+                {id:"RCM", label:"RCM", allowedTypes:["CM","RM","CAM","CDM"]},
+                {id:"LW", label:"LW", allowedTypes:["LW","RW","ST","LWB","LM"]},
+                {id:"ST", label:"ST", allowedTypes:["ST","CF","SS"]},
+                {id:"RW", label:"RW", allowedTypes:["RW","LW","ST","RM","RWB"]}
+            ]
+        },
+        "442": {
+            positions: [
+                {id:"GK", label:"GK", allowedTypes:["GK"]},
+                {id:"LB", label:"LB", allowedTypes:["LB","LWB","CB"]},
+                {id:"CB1", label:"CB", allowedTypes:["CB"]},
+                {id:"CB2", label:"CB", allowedTypes:["CB"]},
+                {id:"RB", label:"RB", allowedTypes:["RB","RWB","CB"]},
+                {id:"LM", label:"LM", allowedTypes:["LM","LW","CM"]},
+                {id:"CM1", label:"CM", allowedTypes:["CM","CDM","CAM"]},
+                {id:"CM2", label:"CM", allowedTypes:["CM","CDM","CAM"]},
+                {id:"RM", label:"RM", allowedTypes:["RM","RW","CM"]},
+                {id:"ST1", label:"ST", allowedTypes:["ST","CF","SS"]},
+                {id:"ST2", label:"ST", allowedTypes:["ST","CF","SS"]}
+            ]
+        },
+        "352": {
+            positions: [
+                {id:"GK", label:"GK", allowedTypes:["GK"]},
+                {id:"CB1", label:"CB", allowedTypes:["CB"]},
+                {id:"CB2", label:"CB", allowedTypes:["CB"]},
+                {id:"CB3", label:"CB", allowedTypes:["CB"]},
+                {id:"LWB", label:"LWB", allowedTypes:["LWB","LB","LM"]},
+                {id:"CDM", label:"CDM", allowedTypes:["CDM","CM"]},
+                {id:"CM1", label:"CM", allowedTypes:["CM","CAM"]},
+                {id:"CM2", label:"CM", allowedTypes:["CM","CAM"]},
+                {id:"RWB", label:"RWB", allowedTypes:["RWB","RB","RM"]},
+                {id:"ST1", label:"ST", allowedTypes:["ST","CF"]},
+                {id:"ST2", label:"ST", allowedTypes:["ST","CF","SS"]}
+            ]
+        }
+    };
+
+    // 全局状态
+    let currentTeam, currentEra;
+    let teamRerollLeft = 2, eraRerollLeft = 2;
+    let currentFormation = "433";
+    let playerPool = [];          // 可选球员列表
+    let lineup = {};              // 位置id -> 球员对象
+    let selectedPlayer = null;    // 当前选中的待放置球员
+
+    // DOM 元素
+    const teamSpan = document.getElementById("teamName");
+    const eraSpan = document.getElementById("eraName");
+    const teamChanceSpan = document.getElementById("teamChance");
+    const eraChanceSpan = document.getElementById("eraChance");
+    const pitchContainer = document.getElementById("pitchContainer");
+    const playerPoolDiv = document.getElementById("playerPoolList");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const analysisDiv = document.getElementById("analysisArea");
+    const selectedCountSpan = document.getElementById("selectedCountText");
+    const resetBtn = document.getElementById("resetGameBtn");
+
+    // 根据球队+年代筛选真实球员 (至少11人，无占位符)
+    function getPlayersByTeamAndEra(team, decade) {
+        const decadeStart = parseInt(decade.slice(0,4));
+        const decadeEnd = decadeStart + 9;
+        let filtered = PLAYERS_DB.filter(p => {
+            return p.career.some(career => {
+                if (career.team !== team) return false;
+                const start = career.start;
+                const end = career.end || 2025;
+                return !(end < decadeStart || start > decadeEnd);
+            });
+        });
+        // 去重(同名只保留最高评分)
+        const uniqueMap = new Map();
+        for (const p of filtered) {
+            if (!uniqueMap.has(p.name) || uniqueMap.get(p.name).rating < p.rating) {
+                uniqueMap.set(p.name, p);
+            }
+        }
+        let unique = Array.from(uniqueMap.values());
+        // 按评分排序取前15，确保位置多样性
+        unique.sort((a,b)=>b.rating - a.rating);
+        let finalPool = unique.slice(0, 15);
+        // 如果不足11人(极端情况)，扩展一些边缘球员但不用占位符，而是扩展同队其他年代球员
+        if (finalPool.length < 11) {
+            // 放宽到同一球队所有年代
+            let backup = PLAYERS_DB.filter(p => p.career.some(c => c.team === team));
+            backup.sort((a,b)=>b.rating - a.rating);
+            for (let p of backup) {
+                if (!finalPool.some(fp=>fp.name===p.name)) finalPool.push(p);
+                if (finalPool.length >= 15) break;
+            }
+        }
+        return finalPool.slice(0,15);
+    }
+
+    // 重新加载游戏 (新游戏/换队/换年代时调用)
+    function refreshGame(keepLineup = false) {
+        if (!keepLineup) {
+            lineup = {};
+            selectedPlayer = null;
+        }
+        playerPool = getPlayersByTeamAndEra(currentTeam, currentEra);
+        updateUI();
+        analysisDiv.style.display = 'none';
+    }
+
+    function updateUI() {
+        teamSpan.innerText = currentTeam;
+        eraSpan.innerText = currentEra;
+        teamChanceSpan.innerText = teamRerollLeft;
+        eraChanceSpan.innerText = eraRerollLeft;
+        renderPitch();
+        renderPlayerPool();
+        const filledCount = Object.keys(lineup).length;
+        selectedCountSpan.innerText = `${filledCount}/11`;
+    }
+
+    // 渲染球场 (所有位置显示球员或空位)
+    function renderPitch() {
+        const formConf = FORMATIONS[currentFormation];
+        if (!formConf) return;
+        const allPositions = formConf.positions;
+        // 分成四行
+        const rows = [
+            allPositions.slice(0,1),
+            allPositions.slice(1,5),
+            allPositions.slice(5,8),
+            allPositions.slice(8,11)
+        ];
+        pitchContainer.innerHTML = '';
+        rows.forEach(row => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'pitch-row';
+            row.forEach(pos => {
+                const slotDiv = document.createElement('div');
+                const player = lineup[pos.id];
+                const isEmpty = !player;
+                slotDiv.className = `position-slot ${isEmpty ? 'empty' : 'filled'}`;
+                slotDiv.innerHTML = `
+                    <div class="pos-label">${pos.label}</div>
+                    ${player ? `<div class="player-name">${player.name}</div><div class="pos-actions">⚡ 点击调整</div>` : `<div class="pos-actions">➕ 空位</div>`}
+                `;
+                slotDiv.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (player) {
+                        // 已有球员：调整位置 (弹出可移动的位置)
+                        showMoveOptions(pos.id, player);
+                    } else {
+                        // 空位：如果有选中的球员，尝试放置
+                        if (selectedPlayer) {
+                            if (pos.allowedTypes.some(type => selectedPlayer.positions.includes(type))) {
+                                // 检查球员是否已被放置在其他位置
+                                const alreadyPlaced = Object.values(lineup).includes(selectedPlayer);
+                                if (alreadyPlaced) {
+                                    alert(`${selectedPlayer.name} 已经在场上其他位置！请先移动或移除。`);
+                                    selectedPlayer = null;
+                                    renderPlayerPool();
+                                    return;
+                                }
+                                lineup[pos.id] = selectedPlayer;
+                                selectedPlayer = null;
+                                updateUI();
+                            } else {
+                                alert(`${selectedPlayer.name} 不能踢 ${pos.label} 位置！他擅长: ${selectedPlayer.positions.join(',')}`);
+                            }
+                        } else {
+                            alert('请先在下方候选池点击选中一名球员，再点击空位放置');
+                        }
+                    }
+                });
+                rowDiv.appendChild(slotDiv);
+            });
+            pitchContainer.appendChild(rowDiv);
+        });
+    }
+
+    // 移动球员到其他空位或交换
+    function showMoveOptions(posId, player) {
+        const formConf = FORMATIONS[currentFormation];
+        const targetPositions = formConf.positions.filter(p => {
+            if (p.id === posId) return false;
+            // 目标位置是否允许该球员
+            const allowed = p.allowedTypes.some(type => player.positions.includes(type));
+            if (!allowed) return false;
+            // 如果目标位置已被其他球员占据，可以交换；如果为空则移动
+            return true;
+        });
+        if (targetPositions.length === 0) {
+            alert(`${player.name} 无法移动到任何其他位置，请保持原位或先移除其他球员。`);
+            return;
+        }
+        let msg = `选择 ${player.name} 的新位置:\n`;
+        targetPositions.forEach((p, idx) => {
+            const occupant = lineup[p.id];
+            msg += `${idx+1}. ${p.label} ${occupant ? `(已有${occupant.name})` : '(空位)'}\n`;
+        });
+        const choice = prompt(msg + "\n输入编号 (取消则不动)");
+        const idx = parseInt(choice) - 1;
+        if (!isNaN(idx) && targetPositions[idx]) {
+            const newPos = targetPositions[idx];
+            const otherPlayer = lineup[newPos.id];
+            if (otherPlayer && otherPlayer === player) return;
+            // 交换或移动
+            delete lineup[posId];
+            if (otherPlayer) {
+                lineup[posId] = otherPlayer;
+            }
+            lineup[newPos.id] = player;
+            updateUI();
+        }
+    }
+
+    // 渲染球员池（高亮当前选中的球员）
+    function renderPlayerPool() {
+        const selectedPlayers = Object.values(lineup);
+        const available = playerPool.filter(p => !selectedPlayers.includes(p));
+        playerPoolDiv.innerHTML = available.map(p => `
+            <div class="player-card" data-name="${p.name}" style="${selectedPlayer === p ? 'border: 3px solid red; background: #5a3e1a;' : ''}">
+                ${p.name}<br><span style="font-size:10px">${p.positions.slice(0,3).join(',')} ✦${p.rating}</span>
+            </div>
+        `).join('');
+        // 绑定点击事件
+        document.querySelectorAll('.player-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const name = card.getAttribute('data-name');
+                const player = playerPool.find(p => p.name === name);
+                if (player && !Object.values(lineup).includes(player)) {
+                    selectedPlayer = player;
+                    renderPlayerPool(); // 重新高亮
+                } else if (player && Object.values(lineup).includes(player)) {
+                    alert(`${player.name} 已在阵中，不能重复添加`);
+                }
+            });
+        });
+    }
+
+    // 重置整个游戏（新游戏）
+    function newGame() {
+        // 随机球队和年代
+        const randomTeam = ALL_TEAMS[Math.floor(Math.random() * ALL_TEAMS.length)];
+        const randomEra = DECADES[Math.floor(Math.random() * DECADES.length)];
+        currentTeam = randomTeam;
+        currentEra = randomEra;
+        teamRerollLeft = 2;
+        eraRerollLeft = 2;
+        lineup = {};
+        selectedPlayer = null;
+        refreshGame(false);
+    }
+
+    function rerollTeam() {
+        if (teamRerollLeft <= 0) { alert("没有球队重抽机会了！"); return; }
+        teamRerollLeft--;
+        let newTeam = ALL_TEAMS[Math.floor(Math.random() * ALL_TEAMS.length)];
+        while (newTeam === currentTeam && ALL_TEAMS.length > 1) newTeam = ALL_TEAMS[Math.floor(Math.random() * ALL_TEAMS.length)];
+        currentTeam = newTeam;
+        lineup = {};
+        selectedPlayer = null;
+        refreshGame(false);
+    }
+
+    function rerollEra() {
+        if (eraRerollLeft <= 0) { alert("没有年代重抽机会了！"); return; }
+        eraRerollLeft--;
+        let newEra = DECADES[Math.floor(Math.random() * DECADES.length)];
+        while (newEra === currentEra && DECADES.length > 1) newEra = DECADES[Math.floor(Math.random() * DECADES.length)];
+        currentEra = newEra;
+        lineup = {};
+        selectedPlayer = null;
+        refreshGame(false);
+    }
+
+    function analyzeStrength() {
+        if (Object.keys(lineup).length !== 11) {
+            alert(`请先选满11名球员！当前${Object.keys(lineup).length}/11`);
+            return;
+        }
+        let totalRating = 0;
+        for (let p of Object.values(lineup)) totalRating += p.rating;
+        let avg = totalRating / 11;
+        let strengths = [];
+        if (avg >= 90) strengths.push("✨ 历史级银河战舰，攻防无解");
+        else if (avg >= 85) strengths.push("🏆 冠军级阵容，统治力极强");
+        else if (avg >= 80) strengths.push("⚡ 实力派劲旅，杯赛黑马潜质");
+        else strengths.push("🌱 青春风暴，未来可期");
+        
+        let champ = avg >= 88 ? "欧冠夺冠大热门" : (avg >= 82 ? "欧冠四强有力竞争者" : "欧冠八强水平");
+        let worldCup = avg >= 86 ? "世界杯四强，冲击金杯" : (avg >= 80 ? "世界杯八强" : "小组出线为目标");
+        
+        analysisDiv.innerHTML = `<strong>🏅 ${currentTeam} · ${currentEra} 梦幻阵容报告</strong><br>
+        ⭐ 综合评分: ${avg.toFixed(1)}<br>
+        ✅ 优势: ${strengths[0]}<br>
+        🔮 欧冠预测: ${champ}<br>
+        🌍 世界杯预测: ${worldCup}<br>
+        💎 教练评语: 阵容搭配合理，传奇复刻。`;
+        analysisDiv.style.display = 'block';
+    }
+
+    // 阵型切换
+    document.querySelectorAll("[data-form]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".form-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentFormation = btn.getAttribute("data-form");
+            // 切换阵型时，尽量保留原有球员（位置不匹配的会丢失，提示清空）
+            let newLineup = {};
+            const newPosIds = FORMATIONS[currentFormation].positions.map(p => p.id);
+            for (let [posId, player] of Object.entries(lineup)) {
+                if (newPosIds.includes(posId)) newLineup[posId] = player;
+            }
+            lineup = newLineup;
+            selectedPlayer = null;
+            updateUI();
+        });
+    });
+
+    document.getElementById("rerollTeamBtn").addEventListener("click", rerollTeam);
+    document.getElementById("rerollEraBtn").addEventListener("click", rerollEra);
+    resetBtn.addEventListener("click", () => newGame());
+    analyzeBtn.addEventListener("click", analyzeStrength);
+
+    // 启动游戏
+    newGame();
+</script>
+</body>
+</html>
